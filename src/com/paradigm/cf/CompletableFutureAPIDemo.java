@@ -8,14 +8,62 @@ public class CompletableFutureAPIDemo {
     public static void main(String[] args) throws ExecutionException, InterruptedException, TimeoutException {
 //        m1();
 //        m2();
+//        m3();   //对计算结果进行消费
+//        m4();   //对计算速度进行选用
+//        m5();   //对任务A与任务B的计算结果进行合并
+    }
+
+
+    //对计算结果进行合并
+    private static void m5() {
+        System.out.println(CompletableFuture.supplyAsync(() -> {
+            return 10;
+        }).thenCombine(CompletableFuture.supplyAsync(() -> {
+            return 20;
+        }), (r1, r2) -> {
+            return r1 + r2;
+        }).join());
+    }
+
+    //对计算速度进行选用
+    private static void m4() {
+        System.out.println(CompletableFuture.supplyAsync(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return 1;
+        }).applyToEither(CompletableFuture.supplyAsync(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return 2;
+        }), r -> {
+            return r;
+        }).join());
+    }
+
+    //对计算结果进行消费
+    private static void m3() {
         CompletableFuture.supplyAsync(() -> {
             return 1;
-        }).thenApply(f -> {
+        }).thenApply(f -> {    //thenApply表示计算结果存在依赖，串行化执行，有异常时会被叫停
             return f + 1;
         }).thenApply(f -> {
             return f + 2;
+        //thenAccept表示对计算结果进行消费并无返回结果
         }).thenAccept(r -> System.out.println(String.format("result: %s", r)));
 
+        //Code之任务间的顺序执行
+        // 1、thenRun 任务A执行完任务B， 且B不需要A的结果
+        // 2、thenAccept  A执行完到B，且B需要A的返回值，但B无返回值
+        // 3、thenApply   A执行完到B，且B需要A的返回值，B也有返回值
+        System.out.println(CompletableFuture.supplyAsync(() -> "return A").thenRun(() -> {}).join());
+        System.out.println(CompletableFuture.supplyAsync(() -> "return A").thenAccept(f -> {}).join());
+        System.out.println(CompletableFuture.supplyAsync(() -> "return A").thenApply(f -> f + " return B").join());
     }
 
     //对计算结果进行处理
@@ -23,7 +71,7 @@ public class CompletableFutureAPIDemo {
         System.out.println(CompletableFuture.supplyAsync(() -> {
             System.out.println("------1");
             return 1;
-        }).handle((f, e) -> {
+        }).handle((f, e) -> {  //handle方法可以处理异常
             System.out.println("------2");
             return f + 2;
         }).handle((f, e) -> {
