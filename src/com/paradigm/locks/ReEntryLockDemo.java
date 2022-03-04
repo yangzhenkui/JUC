@@ -7,6 +7,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 // 可重入锁的演示：可重入锁是指一个线程在外层获得锁后，再进入该线程的内层方法会自动获得锁（前提是锁对象需要是同一个）
 // 可重入锁在一定程度上能够避免死锁
+
+// synchronized实现可重入锁的原理是因为每一个锁对象都有一个锁计数器和一个指向持有该锁的线程的指针
+// 若计数器为0，则说明锁已经被释放
 public class ReEntryLockDemo {
     public static void main(String[] args) {
 
@@ -25,9 +28,18 @@ public class ReEntryLockDemo {
                     lock.unlock();
                 }
             }finally {
-                lock.unlock();
+                lock.unlock();  //将其注释之后会导致b线程无法获取到锁而一直等待
             }
         }, "t1").start();
+
+        new Thread(() -> {
+            lock.lock();
+            try{
+                System.out.println("b 线程调用lock-ing....");
+            }finally {
+                lock.unlock();
+            }
+        }, "b").start();
 
         SyncBlock();
 

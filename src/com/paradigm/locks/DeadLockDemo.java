@@ -2,7 +2,12 @@ package com.paradigm.locks;
 
 import java.util.concurrent.TimeUnit;
 
-//演示死锁
+// 演示死锁
+// 死锁是因为两个或两个以上的线程在执行过程中因争夺资源而造成的一种互相等待的现象。
+// 死锁产生的主要原因是系统资源不足、进程运行推进顺序不合适、资源分配不当
+// 排查死锁的方法：
+//  1、 命令行：⭕️ jps -l 找出进程编号  ⭕️jstack 进程编号查看是否存在死锁
+//  2、 图形化：jconsole   可以直接检测是否存在死锁
 public class DeadLockDemo {
     static Object lockA = new Object();
     static Object lockB = new Object();
